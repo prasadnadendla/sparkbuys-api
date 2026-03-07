@@ -14,6 +14,7 @@ CREATE TABLE "sb"."users" (
     city VARCHAR(100),
     state VARCHAR(100),
     location JSONB,  -- Store lat/lng as JSON
+    shopify_customer_id BIGINT,
     created_at BIGINT NOT NULL DEFAULT extract(epoch from now())::BIGINT,
     modified_at BIGINT NOT NULL DEFAULT extract(epoch from now())::BIGINT
 );

@@ -32,16 +32,19 @@ export const getUser = async (phoneNumber: string) => {
                     secret
                     is_active
                     blocked
-                    terms_accepted
                     name
                     email
                     is_deleted
                     roles
+                    shopify_customer_id
                 }
                 }`,
         variables: { phone: phoneNumber }
     })
-
+    if(response.error){
+        log.error(response.error);
+        return null;
+    } 
     return (response as any).data.sb_users[0] || null;
 }
 
@@ -52,8 +55,7 @@ export const getUserById = async (userId: string) => {
                     id
                     secret
                     is_active
-                    blocked
-                    terms_accepted
+                    blocked                    
                     name
                     email
                     is_deleted
@@ -80,12 +82,23 @@ export const createUser = async (phoneNumber: string, secret: string, location: 
     return (response as any).data.insert_sb_users_one.id || null;
 }
 
+export const updateShopifyCustomerId = async (userId: string, shopifyCustomerId: number) => {
+    const response = await client.mutate({
+        mutation: gql`mutation updateShopifyCustomerId($id: uuid!, $shopify_customer_id: bigint!) {
+                update_sb_users_by_pk(pk_columns: {id: $id}, _set: {shopify_customer_id: $shopify_customer_id}) {
+                    id
+                }
+            }`,
+        variables: { id: userId, shopify_customer_id: shopifyCustomerId }
+    });
+    return (response as any).data.update_sb_users_by_pk || null;
+}
+
 export const activateUser = async (userId: string) => {
     const response = await client.mutate({
         mutation: gql`mutation activateUser($id: uuid!) {
                 update_sb_users_by_pk(pk_columns: {id: $id}, _set: {is_active: true}) {
-                    id                    
-                    terms_accepted
+                    id        
                 }
             }`,
         variables: { id: userId }

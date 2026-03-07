@@ -12,7 +12,8 @@ setLogger(app.log)
 import { SignIn, SignInInput, SignInVerify, SignInVerifyInput } from './models/middleware'
 import { getTotpInstance, validate } from "./validator";
 import { sendOTP } from "./otp/twofactor";
-import { getUser, createUser, getGeoLocation, activateUser, saveToken, executeMutation, executeQuery } from './db/queries'
+import { getUser, createUser, getGeoLocation, activateUser, saveToken, updateShopifyCustomerId, executeMutation, executeQuery } from './db/queries'
+import { createOrGetShopifyCustomer, getCustomerAccessToken } from './shopify'
 import fastifyMetrics from 'fastify-metrics'
 import fastifyJwt from "@fastify/jwt";
 import rateLimit from '@fastify/rate-limit'
@@ -131,13 +132,16 @@ app.post("/signin", { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } 
     try { location = await getGeoLocation(req.ip); } catch (e) { req.log.error(e, "Failed to get geolocation") }
     // create new user
     const newUser = await createUser(payload.phone, secret, location);
-    //TODO: create customer in shopify
     if (!newUser) {
       res.status(500).send({ error: "Failed to create account" });
       return;
     }
     const code = getTotpInstance(payload.phone, secret).generate();
-    sendOTP(payload.phone, code)
+    sendOTP(payload.phone, code);
+    // Create Shopify customer in background — don't block the OTP response
+    createOrGetShopifyCustomer(payload.phone, secret)
+      .then(shopifyId => { if (shopifyId) updateShopifyCustomerId(newUser, shopifyId); })
+      .catch(() => { /* non-critical */ });
     res.code(204).send();
     return;
 
@@ -160,14 +164,14 @@ app.post("/verify", { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } 
     }
     //For testing
     if (AppConfig.test.active && data.phone === AppConfig.test.phone && data.code === AppConfig.test.otp) {
-      //TODO: get customer access token from shopify
       const user = await getUser(data.phone);
       const token = app.jwt.sign({ phone: data.phone, uid: user!.id })
       res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
       res.header("Pragma", "no-cache")
       res.header("Expires", "0")
-      res.send({ token });
-      const location = await getGeoLocation(req.ip);
+      const shopifyToken = await getCustomerAccessToken(data.phone, user!.secret);
+      res.send({ token, shopifyToken });
+      getGeoLocation(req.ip).catch(() => {});
       return
     }
     const { phone, code }: SignInVerifyInput = data;
@@ -194,13 +198,23 @@ app.post("/verify", { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } 
       res.status(401).send({ error: "Your account is suspended. please contact our support system" });
       return;
     }
-    //TODO: customer token from shopify
-    const token = app.jwt.sign({ phone: data.phone, uid: user!.id })
-    // set no cache 
+
+    // Ensure Shopify customer exists (handles existing users who pre-date this feature)
+    if (!user.shopify_customer_id) {
+      createOrGetShopifyCustomer(phone, user.secret)
+        .then(shopifyId => { if (shopifyId) updateShopifyCustomerId(user.id, shopifyId); })
+        .catch(() => { /* non-critical */ });
+    }
+
+    const [token, shopifyToken] = await Promise.all([
+      app.jwt.sign({ phone: data.phone, uid: user!.id }),
+      getCustomerAccessToken(phone, user.secret),
+    ]);
+
     res.header("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
     res.header("Pragma", "no-cache")
     res.header("Expires", "0")
-    res.send({ token });
+    res.send({ token, shopifyToken });
     const location = await getGeoLocation(req.ip);
     saveToken(user!.id, token, location)
   } catch (ex) {

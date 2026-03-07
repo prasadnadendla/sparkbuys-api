@@ -3,7 +3,7 @@
     "system_code": "4}4A~KEaQZi,XAHc%)Ajci%f;{fTw@c!",
     "secretKey": "U7e99iZOyWFVIUlfmFVyY0wFIKYksdEeLXFIcEu5j3gIHGP79O",
     "graphql": {
-        "endpoint": "https://gql.sparkbuys.in/v1/graphql",
+        "endpoint": "https://gql.truelet.in/v1/graphql",
         "subscriptionsEndpoint": "/graphql/subscriptions"
     },
     "ipinfo": {
@@ -29,5 +29,10 @@
         "privateKey": "hkCb-d8_16DlTuvNKSprSVd2gn4t2JXjTzy0De5k8Uk",
         "subject": "mailto:prasad@trackland.in"
     },
-    "jwt": "yFU7lLPpS75R5oaNPiz+yTq/SCG29ZR08+mVUiPwCog="
+    "jwt": "yFU7lLPpS75R5oaNPiz+yTq/SCG29ZR08+mVUiPwCog=",
+    "shopify": {
+        "storeUrl": "sparkbuys26.myshopify.com",
+        "adminToken": "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",
+        "storefrontToken": "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"
+    }
 }
