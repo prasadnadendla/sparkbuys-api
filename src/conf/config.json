@@ -32,7 +32,7 @@
     "jwt": "yFU7lLPpS75R5oaNPiz+yTq/SCG29ZR08+mVUiPwCog=",
     "shopify": {
         "storeUrl": "sparkbuys26.myshopify.com",
-        "adminToken": "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",
-        "storefrontToken": "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"
+        "adminToken": "",
+        "storefrontToken": ""
     }
 }
