@@ -2,7 +2,7 @@ import * as AppConfig from './conf/config.json';
 import { getLogger } from './log';
 
 const log = getLogger();
-const SHOPIFY_API_VERSION = '2024-01';
+const SHOPIFY_API_VERSION = '2026-01';
 const BASE_URL = `https://${AppConfig.shopify.storeUrl}/admin/api/${SHOPIFY_API_VERSION}`;
 const ADMIN_HEADERS = {
     'Content-Type': 'application/json',
