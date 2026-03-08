@@ -22,7 +22,7 @@
     "test": {
         "phone": "+919999999999",
         "otp": "123456",
-        "active": true
+        "active": false
     },
     "vapid": {
         "publicKey": "BO_YVmkvnzGZ6NYAD22PdyTzMV8So0JfssMHagKL4OsdlsiEJJhYZs17OiPn2u_ax3efh7yxt9Aa6F9bYVJmu1Y",
@@ -32,7 +32,7 @@
     "jwt": "yFU7lLPpS75R5oaNPiz+yTq/SCG29ZR08+mVUiPwCog=",
     "shopify": {
         "storeUrl": "sparkbuys26.myshopify.com",
-        "adminToken": "",
-        "storefrontToken": ""
+        "adminToken": "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",
+        "storefrontToken": "29487c34d6331341ec4e7db25f7dc35c"
     }
 }
