@@ -199,11 +199,10 @@ app.post("/verify", { config: { rateLimit: { max: 3, timeWindow: '1 minute' } } 
       return;
     }
 
-    // Ensure Shopify customer exists (handles existing users who pre-date this feature)
+    // Ensure Shopify customer exists before fetching access token
     if (!user.shopify_customer_id) {
-      createOrGetShopifyCustomer(phone, user.secret)
-        .then(shopifyId => { if (shopifyId) updateShopifyCustomerId(user.id, shopifyId); })
-        .catch(() => { /* non-critical */ });
+      const shopifyId = await createOrGetShopifyCustomer(phone, user.secret);
+      if (shopifyId) updateShopifyCustomerId(user.id, shopifyId).catch(() => {});
     }
 
     const [token, shopifyToken] = await Promise.all([
